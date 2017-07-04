@@ -1,0 +1,9 @@
+framework module CBBFunctionChannel {
+
+header "CBBAsyncResult.h"
+header "CBBFunctionChannel.h"
+header "CBBRemoteExport.h"
+header "CBBRemoteExportUtility.h"
+
+}
+
