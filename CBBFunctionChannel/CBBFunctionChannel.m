@@ -205,10 +205,10 @@ NSString* const CBBFunctionChannelErrorAsync = @"CBBFunctionChannelErrorAsync";
                     id resultObject = (__bridge_transfer id)result;
                     if ([resultObject isKindOfClass:[CBBAsyncResult class]]) {
                         // CBBAsyncResultの場合は結果をコールバックで返す
-                        [(CBBAsyncResult*)resultObject execute];
                         ((CBBAsyncResult*)resultObject).onComplete(^(id result) {
                             callback(@[ CBBFunctionChannelFormatEDO, result ]);
                         });
+                        [(CBBAsyncResult*)resultObject execute];
                     } else {
                         callback(@[ CBBFunctionChannelFormatEDO, resultObject ]);
                     }
