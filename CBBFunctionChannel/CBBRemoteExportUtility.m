@@ -8,8 +8,7 @@
 
 + (NSDictionary<NSString*, NSString*>*)exportRemoteExportMethodTableFromClass:(Class)cls
 {
-    NSArray* protocols = [CBBRemoteExportUtility protocolsConformsToPortocol:@protocol(CBBRemoteExport) class:cls];
-    NSArray* methods = [CBBRemoteExportUtility methodsConformsToProtocolNames:protocols];
+    NSArray* methods = [CBBRemoteExportUtility methodsConformsToProtocol:@protocol(CBBRemoteExport) class:cls];
     NSDictionary* result = [self remoteExportMethodTableFromMethodNames:methods];
     return result;
 }
@@ -37,28 +36,7 @@
     return result;
 }
 
-+ (NSArray<NSString*>*)methodsConformsToProtocolNames:(NSArray*)protocolNames
-{
-    NSMutableArray* result = [NSMutableArray array];
-    for (NSString* protocolName in protocolNames) {
-        Protocol* protocol = NSProtocolFromString(protocolName);
-        unsigned int count = 0;
-        struct objc_method_description* required_method_descriptions = protocol_copyMethodDescriptionList(protocol, YES, YES, &count);
-        for (unsigned int i = 0; i < count; ++i) {
-            [result addObject:NSStringFromSelector(required_method_descriptions[i].name)];
-        }
-        free(required_method_descriptions);
-        count = 0;
-        struct objc_method_description* optional_method_descriptions = protocol_copyMethodDescriptionList(protocol, NO, YES, &count);
-        for (unsigned int i = 0; i < count; ++i) {
-            [result addObject:NSStringFromSelector(optional_method_descriptions[i].name)];
-        }
-        free(optional_method_descriptions);
-    }
-    return result;
-}
-
-+ (NSArray<NSString*>*)protocolsConformsToPortocol:(Protocol*)protocol class:(Class)cls
++ (NSArray<NSString*>*)methodsConformsToProtocol:(Protocol*)protocol class:(Class)cls
 {
     NSMutableArray* result = [NSMutableArray array];
     if ([cls conformsToProtocol:protocol]) {
@@ -66,7 +44,20 @@
         Protocol* __unsafe_unretained* adops = class_copyProtocolList(cls, &count);
         for (unsigned int i = 0; i < count; ++i) {
             if (protocol_conformsToProtocol(adops[i], protocol)) {
-                [result addObject:[NSString stringWithFormat:@"%s", protocol_getName(adops[i])]];
+                unsigned int count = 0;
+                struct objc_method_description* required_method_descriptions = protocol_copyMethodDescriptionList(adops[i], YES, YES, &count);
+                for (unsigned int i = 0; i < count; ++i) {
+                    NSString* str = NSStringFromSelector(required_method_descriptions[i].name);
+                    [result addObject:str];
+                }
+                free(required_method_descriptions);
+                count = 0;
+                struct objc_method_description* optional_method_descriptions = protocol_copyMethodDescriptionList(adops[i], NO, YES, &count);
+                for (unsigned int i = 0; i < count; ++i) {
+                    NSString* str = NSStringFromSelector(optional_method_descriptions[i].name);
+                    [result addObject:str];
+                }
+                free(optional_method_descriptions);
             }
         }
         free(adops);
